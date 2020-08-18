@@ -9,6 +9,9 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
+  schedule:
+    - cron:  '0 0 * * *'
+
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -19,17 +22,23 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
+    - uses: r-lib/actions/setup-r@master
+    - uses: r-lib/actions/setup-pandoc@master
 
+    - name: Install system dependencies
+      run: |
+        sudo apt-get install libcurl4-openssl-dev
+        
     - name: Install R package dependencies
       run: |
         if (!require('remotes')) install.packages('remotes')
         if (!require('rvest')) remotes::install_github('tidyverse/rvest')
+      shell: Rscript {0}
    
     - name: Fetch stats and update README.md
       run: |
-        scrape_google_scholar.R
+        Rscript scrape_google_scholar.R
     
     - name: Commit and push if needed
       run: |-
